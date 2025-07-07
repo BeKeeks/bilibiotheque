@@ -382,12 +382,14 @@ async function addAnime(e) {
   } else if (document.getElementById("lastEpisode")) {
     lastEpisode = document.getElementById("lastEpisode").value.trim();
   }
+  const episode = parseInt(document.getElementById("episode").value, 10) || null;
   const watchDate = document.getElementById("watchDate").value;
   const status = document.getElementById("status").value;
   if (!title) return;
   const anime = {
     title,
     lastEpisode,
+    episode,
     watchDate,
     status,
     image: window.selectedAnimeImage || null
@@ -411,6 +413,7 @@ async function addAnime(e) {
     document.getElementById("title").value = "";
     document.getElementById("watchDate").value = "";
     document.getElementById("status").value = "fini";
+    document.getElementById("episode").value = "";
     if (document.getElementById("seasonSelect")) {
       document.getElementById("seasonSelect").remove();
       const lastEpisodeCell = document.querySelector("td:nth-child(2)");
@@ -463,7 +466,6 @@ function renderAnimeList(animeList) {
   tbody.innerHTML = "";
   animeList.forEach((anime, index) => {
     const tr = document.createElement("tr");
-    // ... même code que précédemment pour formater la ligne ...
     let formattedDate = "-";
     if (anime.watchDate) {
       const date = new Date(anime.watchDate);
@@ -476,7 +478,6 @@ function renderAnimeList(animeList) {
       }
     }
     let displayTitle = anime.title;
-    // ... traduction éventuelle ...
     const japaneseToEnglish = {/* ... même objet ... */};
     if (japaneseToEnglish[anime.title]) {
       displayTitle = japaneseToEnglish[anime.title];
@@ -488,7 +489,10 @@ function renderAnimeList(animeList) {
           ${anime.image ? `<img src="${anime.image}" alt="${anime.title}" style="width: 100px; height: 150px; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.3);" onerror="this.style.display='none'">` : ''}
         </div>
       </td>
-      <td>${anime.lastEpisode || "-"}</td>
+      <td>
+        ${anime.lastEpisode || "-"}
+        ${anime.episode ? `<div style='font-size:0.95em; color:#555;'>Épisode : ${anime.episode}</div>` : ''}
+      </td>
       <td>${formattedDate}</td>
       <td>${formatStatus(anime.status)}</td>
       <td>🔍</td>
