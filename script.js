@@ -206,7 +206,7 @@ async function getSeasonCount(animeId, animeTitle) {
     "Vinland Saga": 2,
     "The Rising of the Shield Hero": 3,
     "That Time I Got Reincarnated as a Slime": 3,
-    "KonoSuba": 2,
+    "KonoSuba": 3,
     "No Game No Life": 1,
     "Log Horizon": 2,
     "Accel World": 1,
@@ -256,7 +256,18 @@ async function getSeasonCount(animeId, animeTitle) {
     "Giji Harem Season 2": 2,
     "Giji Harem Season 1": 1,
     "Giji Harem Season 3": 3,
-    "Giji Harem Season 4": 4
+    "Giji Harem Season 4": 4,
+    // Nouvelles saisons ajoutées
+    "Tokyo Revengers": 3,
+    "Tokyo Manji Revengers": 3,
+    "Kono Subarashii Sekai ni Shukufuku wo!": 3,
+    "Kono Subarashii Sekai ni Shukufuku o": 3,
+    "Rent a Girlfriend": 4,
+    "Kanojo, Okarishimasu": 4,
+    "Horimiya": 2,
+    "Hori-san to Miyamura-kun": 2,
+    "The Great Cleric": 2,
+    "Shijou Saikyou no Daimaou, Murabito A ni Tensei suru": 2
   };
 
   // Vérifier d'abord dans notre base de données locale
@@ -461,10 +472,11 @@ async function loadAnimeList() {
 }
 
 // Nouvelle fonction pour afficher la liste (extrait de l'ancienne loadAnimeList)
-function renderAnimeList(animeList) {
+async function renderAnimeList(animeList) {
   const tbody = document.querySelector("#animeTable tbody");
   tbody.innerHTML = "";
-  animeList.forEach((anime, index) => {
+  
+  for (const anime of animeList) {
     const tr = document.createElement("tr");
     let formattedDate = "-";
     if (anime.watchDate) {
@@ -477,11 +489,10 @@ function renderAnimeList(animeList) {
         });
       }
     }
-    let displayTitle = anime.title;
-    const japaneseToEnglish = {/* ... même objet ... */};
-    if (japaneseToEnglish[anime.title]) {
-      displayTitle = japaneseToEnglish[anime.title];
-    }
+    
+    // Traduction automatique du titre
+    let displayTitle = await translateAnimeTitle(anime.title);
+    
     tr.innerHTML = `
       <td>
         <div style="text-align: center;">
@@ -496,10 +507,15 @@ function renderAnimeList(animeList) {
       <td>${formattedDate}</td>
       <td>${formatStatus(anime.status)}</td>
       <td>🔍</td>
-      <td><button onclick="deleteAnime('${anime._id}')">🗑️</button></td>
+      <td style="text-align: center;">
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+          <button onclick="editAnime('${anime._id}')" style="background: #ffc107; color: #000; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.9rem;">✏️ Modifier</button>
+          <button onclick="deleteAnime('${anime._id}')" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.9rem;">🗑️ Supprimer</button>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
-  });
+  }
 }
 
 // Adapter deleteAnime pour DELETE via l'API
@@ -740,3 +756,215 @@ function formatStatus(status) {
       return status;
   }
 }
+
+// Fonction pour traduire automatiquement les titres japonais
+async function translateAnimeTitle(japaneseTitle) {
+  // Dictionnaire de traductions existantes
+  const translations = {
+    "Enen no Shouboutai": "Fire Force",
+    "Boku no Hero Academia": "My Hero Academia",
+    "Shingeki no Kyojin": "Attack on Titan",
+    "Kimetsu no Yaiba": "Demon Slayer",
+    "Nanatsu no Taizai": "The Seven Deadly Sins",
+    "Tate no Yuusha no Nariagari": "The Rising of the Shield Hero",
+    "Tensei shitara Slime Datta Ken": "That Time I Got Reincarnated as a Slime",
+    "Kono Subarashii Sekai ni Shukufuku wo!": "KonoSuba",
+    "Kono Subarashii Sekai ni Shukufuku o": "KonoSuba",
+    "No Game No Life": "No Game No Life",
+    "Log Horizon": "Log Horizon",
+    "Accel World": "Accel World",
+    "Guilty Crown": "Guilty Crown",
+    "Angel Beats!": "Angel Beats!",
+    "Charlotte": "Charlotte",
+    "Plastic Memories": "Plastic Memories",
+    "Shigatsu wa Kimi no Uso": "Your Lie in April",
+    "Anohana": "Anohana",
+    "Ano Hi Mita Hana no Namae wo Bokutachi wa Mada Shiranai": "Anohana",
+    "Clannad": "Clannad",
+    "Kanon": "Kanon",
+    "Air": "Air",
+    "Little Busters!": "Little Busters!",
+    "Rewrite": "Rewrite",
+    "Suzumiya Haruhi no Yuuutsu": "The Melancholy of Haruhi Suzumiya",
+    "Lucky Star": "Lucky Star",
+    "K-On!": "K-On!",
+    "Tamako Market": "Tamako Market",
+    "Hibike! Euphonium": "Hibike! Euphonium",
+    "Koe no Katachi": "A Silent Voice",
+    "Kimi no Na wa": "Your Name",
+    "Tenki no Ko": "Weathering with You",
+    "Kotonoha no Niwa": "Garden of Words",
+    "Byousoku 5 Centimeter": "5 Centimeters per Second",
+    "Kumo no Mukou, Yakusoku no Basho": "The Place Promised in Our Early Days",
+    "Hoshi wo Ou Kodomo": "Children Who Chase Lost Voices",
+    "Kaze Tachinu": "The Wind Rises",
+    "Sen to Chihiro no Kamikakushi": "Spirited Away",
+    "Tonari no Totoro": "My Neighbor Totoro",
+    "Mononoke Hime": "Princess Mononoke",
+    "Howl no Ugoku Shiro": "Howl's Moving Castle",
+    "Tenkuu no Shiro Laputa": "Castle in the Sky",
+    "Kaze no Tani no Nausicaa": "Nausicaä of the Valley of the Wind",
+    "Majo no Takkyuubin": "Kiki's Delivery Service",
+    "Kurenai no Buta": "Porco Rosso",
+    "Neko no Ongaeshi": "The Cat Returns",
+    "Gake no Ue no Ponyo": "Ponyo",
+    "Karigurashi no Arrietty": "Arrietty",
+    "Kokuriko-zaka kara": "From Up on Poppy Hill",
+    "Kaguya-hime no Monogatari": "The Tale of the Princess Kaguya",
+    "Omoide no Marnie": "When Marnie Was There",
+    "Reddo Taato": "The Red Turtle",
+    "Aya to Majo": "Earwig and the Witch",
+    "Kimitachi wa Dou Ikiru ka": "How Do You Live?",
+    "Giji Harem": "Pseudo Harem",
+    "Pseudo Harem": "Pseudo Harem",
+    "Rent a Girlfriend": "Rent a Girlfriend",
+    "Kanojo, Okarishimasu": "Rent a Girlfriend",
+    "The Great Cleric": "The Great Cleric",
+    "Shijou Saikyou no Daimaou, Murabito A ni Tensei suru": "The Great Cleric"
+  };
+
+  // Vérifier d'abord dans notre dictionnaire
+  if (translations[japaneseTitle]) {
+    return translations[japaneseTitle];
+  }
+
+  // Si pas trouvé, essayer de récupérer via l'API Jikan
+  try {
+    const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(japaneseTitle)}&limit=1`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data && data.data.length > 0) {
+        const anime = data.data[0];
+        // Retourner le titre anglais s'il existe, sinon le titre japonais
+        return anime.title_english || anime.title;
+      }
+    }
+  } catch (error) {
+    console.error("Erreur lors de la traduction:", error);
+  }
+
+  // Si aucune traduction trouvée, retourner le titre original
+  return japaneseTitle;
+}
+
+// Fonction pour modifier un animé
+window.editAnime = async function(animeId) {
+  // Trouver l'animé à modifier
+  const anime = animeListCache.find(a => a._id === animeId);
+  if (!anime) {
+    alert('Animé non trouvé');
+    return;
+  }
+
+  // Créer la boîte de dialogue de modification
+  const editDialog = document.createElement("div");
+  editDialog.className = "edit-dialog";
+  editDialog.style.cssText = `
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 10000;
+  `;
+
+  const dialogContent = document.createElement("div");
+  dialogContent.style.cssText = `
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+  `;
+
+  // Créer les options de saison
+  let seasonOptions = '';
+  for (let i = 1; i <= 25; i++) {
+    const selected = anime.lastEpisode === `Saison ${i}` ? 'selected' : '';
+    seasonOptions += `<option value="Saison ${i}" ${selected}>Saison ${i}</option>`;
+  }
+
+  dialogContent.innerHTML = `
+    <h3 style="margin-bottom: 1.5rem; color: #333;">Modifier "${anime.title}"</h3>
+    <form id="editForm" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div>
+        <label for="editSeason" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Saison :</label>
+        <select id="editSeason" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+          ${seasonOptions}
+        </select>
+      </div>
+      <div>
+        <label for="editEpisode" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Épisode :</label>
+        <input type="number" id="editEpisode" value="${anime.episode || ''}" min="1" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      </div>
+      <div>
+        <label for="editDate" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Date de visionnage :</label>
+        <input type="date" id="editDate" value="${anime.watchDate || ''}" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+      </div>
+      <div>
+        <label for="editStatus" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Statut :</label>
+        <select id="editStatus" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+          <option value="fini" ${anime.status === 'fini' ? 'selected' : ''}>Terminé</option>
+          <option value="saison à venir" ${anime.status === 'saison à venir' ? 'selected' : ''}>Saison à venir</option>
+          <option value="pas d'info" ${anime.status === 'pas d\'info' ? 'selected' : ''}>Pas d'information</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+        <button type="submit" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">Sauvegarder</button>
+        <button type="button" id="cancelEdit" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">Annuler</button>
+      </div>
+    </form>
+  `;
+
+  editDialog.appendChild(dialogContent);
+  document.body.appendChild(editDialog);
+
+  // Gestionnaire pour le formulaire de modification
+  document.getElementById("editForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const updatedAnime = {
+      title: anime.title,
+      lastEpisode: document.getElementById("editSeason").value,
+      episode: parseInt(document.getElementById("editEpisode").value, 10) || null,
+      watchDate: document.getElementById("editDate").value,
+      status: document.getElementById("editStatus").value,
+      image: anime.image
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/animes/${animeId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken()
+        },
+        body: JSON.stringify(updatedAnime)
+      });
+
+      if (!response.ok) {
+        handleAuthError({ status: response.status });
+        alert('Erreur lors de la modification.');
+        return;
+      }
+
+      loadAnimeList();
+      document.body.removeChild(editDialog);
+    } catch (err) {
+      alert('Erreur réseau.');
+    }
+  });
+
+  // Gestionnaire pour le bouton Annuler
+  document.getElementById("cancelEdit").addEventListener("click", () => {
+    document.body.removeChild(editDialog);
+  });
+
+  // Fermer en cliquant en dehors de la boîte de dialogue
+  editDialog.addEventListener("click", (e) => {
+    if (e.target === editDialog) {
+      document.body.removeChild(editDialog);
+    }
+  });
+};
