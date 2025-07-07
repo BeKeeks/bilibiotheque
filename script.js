@@ -494,10 +494,10 @@ async function renderAnimeList(animeList) {
     let displayTitle = await translateAnimeTitle(anime.title);
     
     tr.innerHTML = `
-      <td>
+      <td style="width: 200px;">
         <div style="text-align: center;">
           <div style="font-weight: bold; margin-bottom: 8px;">${displayTitle}</div>
-          ${anime.image ? `<img src="${anime.image}" alt="${anime.title}" style="width: 100px; height: 150px; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.3);" onerror="this.style.display='none'">` : ''}
+          ${anime.image ? `<img src="${anime.image}" alt="${anime.title}" style="width: 120px; height: 180px; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.3);" onerror="this.style.display='none'">` : ''}
         </div>
       </td>
       <td>
@@ -509,8 +509,8 @@ async function renderAnimeList(animeList) {
       <td>🔍</td>
       <td style="text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
-          <button onclick="editAnime('${anime._id}')" style="background: #ffc107; color: #000; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.9rem;">✏️ Modifier</button>
-          <button onclick="deleteAnime('${anime._id}')" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.9rem;">🗑️ Supprimer</button>
+          <button onclick="editAnime('${anime._id}')" style="background: #6c757d; color: white; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-size: 1rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">✏️</button>
+          <button onclick="deleteAnime('${anime._id}')" style="background: #42a5f5; color: white; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-size: 1rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">🗑️</button>
         </div>
       </td>
     `;
