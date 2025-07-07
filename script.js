@@ -396,6 +396,7 @@ async function addAnime(e) {
   const episode = parseInt(document.getElementById("episode").value, 10) || null;
   const watchDate = document.getElementById("watchDate").value;
   const status = document.getElementById("status").value;
+  const sortie = document.getElementById("sortie") ? document.getElementById("sortie").value.trim() : "";
   if (!title) return;
   const anime = {
     title,
@@ -403,6 +404,7 @@ async function addAnime(e) {
     episode,
     watchDate,
     status,
+    sortie: status === 'saison à venir' ? sortie : '',
     image: window.selectedAnimeImage || null
   };
   try {
@@ -425,6 +427,7 @@ async function addAnime(e) {
     document.getElementById("watchDate").value = "";
     document.getElementById("status").value = "fini";
     document.getElementById("episode").value = "";
+    if (document.getElementById("sortie")) document.getElementById("sortie").value = "";
     if (document.getElementById("seasonSelect")) {
       document.getElementById("seasonSelect").remove();
       const lastEpisodeCell = document.querySelector("td:nth-child(2)");
@@ -493,11 +496,8 @@ async function renderAnimeList(animeList) {
     // Traduction automatique du titre
     let displayTitle = await translateAnimeTitle(anime.title);
 
-    // Récupérer la date de sortie si besoin
-    let sortieCell = "";
-    if (anime.status === "saison à venir" || anime.status === "pas d'info" || anime.status === "pas d'information") {
-      sortieCell = await getAnimeReleaseInfo(anime.title);
-    }
+    // Afficher la sortie prévue si renseignée
+    let sortieCell = anime.sortie && anime.status === 'saison à venir' ? anime.sortie : '';
 
     tr.innerHTML = `
       <td style="width: 200px;">
@@ -933,6 +933,14 @@ window.editAnime = async function(animeId) {
     seasonOptions += `<option value="Saison ${i}" ${selected}>Saison ${i}</option>`;
   }
 
+  // Champ sortie prévu (affiché seulement si "saison à venir")
+  const sortieField = `
+    <div id="editSortieContainer" style="display: ${anime.status === 'saison à venir' ? '' : 'none'}; margin-top: 0.5rem;">
+      <label for="editSortie" style="font-size: 0.95em;">Sortie prévue :</label>
+      <input type="text" id="editSortie" value="${anime.sortie || ''}" style="width: 100%; border: 1px solid #ccc; border-radius: 6px;" placeholder="ex: Automne 2026 ou 12/10/2024">
+    </div>
+  `;
+
   dialogContent.innerHTML = `
     <h3 style="margin-bottom: 1.5rem; color: #333;">Modifier "${anime.title}"</h3>
     <form id="editForm" style="display: flex; flex-direction: column; gap: 1rem;">
@@ -958,6 +966,7 @@ window.editAnime = async function(animeId) {
           <option value="pas d'info" ${anime.status === 'pas d\'info' ? 'selected' : ''}>Pas d'information</option>
         </select>
       </div>
+      ${sortieField}
       <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
         <button type="submit" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">Sauvegarder</button>
         <button type="button" id="cancelEdit" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">Annuler</button>
@@ -967,6 +976,17 @@ window.editAnime = async function(animeId) {
 
   editDialog.appendChild(dialogContent);
   document.body.appendChild(editDialog);
+
+  // Afficher/masquer le champ sortie selon le statut
+  document.getElementById("editStatus").addEventListener('change', function() {
+    const sortieContainer = document.getElementById('editSortieContainer');
+    if (this.value === 'saison à venir') {
+      sortieContainer.style.display = '';
+    } else {
+      sortieContainer.style.display = 'none';
+      document.getElementById('editSortie').value = '';
+    }
+  });
 
   // Gestionnaire pour le formulaire de modification
   document.getElementById("editForm").addEventListener("submit", async (e) => {
@@ -978,6 +998,7 @@ window.editAnime = async function(animeId) {
       episode: parseInt(document.getElementById("editEpisode").value, 10) || null,
       watchDate: document.getElementById("editDate").value,
       status: document.getElementById("editStatus").value,
+      sortie: document.getElementById("editStatus").value === 'saison à venir' ? document.getElementById("editSortie").value.trim() : '',
       image: anime.image
     };
 

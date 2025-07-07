@@ -269,6 +269,10 @@
             <label for="episode" style="font-size: 0.95em;">Épisode :</label>
             <input type="number" id="episode" min="1" style="width: 60px; border: 1px solid #ccc; border-radius: 6px;" placeholder="1">
           </div>
+          <div id="sortieContainer" style="display: none; width: 100%;">
+            <label for="sortie" style="font-size: 0.95em;">Sortie prévue :</label>
+            <input type="text" id="sortie" style="width: 100%; border: 1px solid #ccc; border-radius: 6px;" placeholder="ex: Automne 2026 ou 12/10/2024">
+          </div>
         </td>
         <td><input type="date" id="watchDate"></td>
         <td>
@@ -321,7 +325,22 @@
     });
   </script>
   <script src="script.js"></script>
-
+  <script>
+// Afficher le champ "Sortie prévue" si le statut est "saison à venir"
+document.getElementById('status').addEventListener('change', function() {
+  const sortieContainer = document.getElementById('sortieContainer');
+  if (this.value === 'saison à venir') {
+    sortieContainer.style.display = '';
+  } else {
+    sortieContainer.style.display = 'none';
+    document.getElementById('sortie').value = '';
+  }
+});
+// Initialiser au chargement
+if (document.getElementById('status').value === 'saison à venir') {
+  document.getElementById('sortieContainer').style.display = '';
+}
+</script>
   <form id="animeForm" style="display: none;"></form>
   
 

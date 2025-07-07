@@ -7,6 +7,7 @@ const animeSchema = new mongoose.Schema({
   episode: Number,
   watchDate: String,
   status: String,
+  sortie: String,
   image: String
 });
 

@@ -99,7 +99,7 @@ app.get('/api/animes', authenticateToken, async (req, res) => {
 // Ajouter un animé
 app.post('/api/animes', authenticateToken, async (req, res) => {
   try {
-    const { title, lastEpisode, episode, watchDate, status, image } = req.body;
+    const { title, lastEpisode, episode, watchDate, status, sortie, image } = req.body;
     const anime = new Anime({
       user: req.user.userId,
       title,
@@ -107,6 +107,7 @@ app.post('/api/animes', authenticateToken, async (req, res) => {
       episode,
       watchDate,
       status,
+      sortie,
       image
     });
     await anime.save();
@@ -131,10 +132,10 @@ app.delete('/api/animes/:id', authenticateToken, async (req, res) => {
 // Modifier un animé
 app.put('/api/animes/:id', authenticateToken, async (req, res) => {
   try {
-    const { title, lastEpisode, episode, watchDate, status, image } = req.body;
+    const { title, lastEpisode, episode, watchDate, status, sortie, image } = req.body;
     const anime = await Anime.findOneAndUpdate(
       { _id: req.params.id, user: req.user.userId },
-      { title, lastEpisode, episode, watchDate, status, image },
+      { title, lastEpisode, episode, watchDate, status, sortie, image },
       { new: true }
     );
     res.json(anime);
