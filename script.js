@@ -717,18 +717,11 @@ function compareDates(a, b, direction) {
   const bMatch = b.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
 
   if (aMatch && bMatch) {
-    const aDay = parseInt(aMatch[1]);
-    const aMonth = parseInt(aMatch[2]);
-    const aYear = parseInt(aMatch[3]);
-
-    const bDay = parseInt(bMatch[1]);
-    const bMonth = parseInt(bMatch[2]);
-    const bYear = parseInt(bMatch[3]);
-
-    // Comparer année, puis mois, puis jour
-    if (aYear !== bYear) return aYear - bYear;
-    if (aMonth !== bMonth) return aMonth - bMonth;
-    return aDay - bDay;
+    const aDate = new Date(`${aMatch[3]}-${aMatch[2].padStart(2, '0')}-${aMatch[1].padStart(2, '0')}`);
+    const bDate = new Date(`${bMatch[3]}-${bMatch[2].padStart(2, '0')}-${bMatch[1].padStart(2, '0')}`);
+    if (aDate < bDate) return -1;
+    if (aDate > bDate) return 1;
+    return 0;
   }
 
   // Si le format ne correspond pas, tri alphabétique
