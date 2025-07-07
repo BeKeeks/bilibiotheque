@@ -672,10 +672,7 @@ function sortTable(columnIndex) {
         comparison = compareSeasons(aValue, bValue);
         break;
       case 2: // Date - tri chronologique
-        comparison = compareDates(aValue, bValue);
-        if (currentSortDirection === -1) {
-          comparison = -comparison;
-        }
+        comparison = compareDates(aValue, bValue, currentSortDirection);
         break;
       case 3: // Statut - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -709,11 +706,11 @@ function compareSeasons(a, b) {
   return a.localeCompare(b, 'fr', {sensitivity: 'base'});
 }
 
-function compareDates(a, b) {
+function compareDates(a, b, direction) {
   // Gérer le cas où une des valeurs est "-"
   if (a === "-" && b === "-") return 0;
-  if (a === "-") return -1; // Les dates vides sont les plus anciennes
-  if (b === "-") return 1;
+  if (a === "-") return direction === 1 ? -1 : 1;
+  if (b === "-") return direction === 1 ? 1 : -1;
 
   // Parser le format français JJ/MM/AAAA
   const aMatch = a.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
