@@ -504,30 +504,85 @@ function renderAnimeList(animeList) {
 
 // Adapter deleteAnime pour DELETE via l'API
 window.deleteAnime = async function(animeId) {
-  // Boîte de dialogue de confirmation (identique)
-  // ... même code pour la boîte de dialogue ...
+  // Vérifier s'il y a déjà une boîte de dialogue ouverte
+  if (document.querySelector('.confirm-dialog')) {
+    return;
+  }
+
+  // Trouver l'animé à supprimer pour afficher son nom
+  const anime = animeListCache.find(a => a._id === animeId);
+
+  // Créer la boîte de dialogue de confirmation
   const confirmDialog = document.createElement("div");
-  // ...
-  // Gestionnaire pour le bouton "Oui"
-  document.getElementById("confirmYes").addEventListener("click", async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/animes/${animeId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': 'Bearer ' + getToken()
+  confirmDialog.className = "confirm-dialog";
+  confirmDialog.style.cssText = `
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 10000;
+  `;
+
+  const dialogContent = document.createElement("div");
+  dialogContent.style.cssText = `
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+  `;
+
+  dialogContent.innerHTML = `
+    <h3 style="margin-bottom: 1rem; color: #333;">Confirmation de suppression</h3>
+    <p style="margin-bottom: 1.5rem; color: #666;">Êtes-vous sûr de vouloir supprimer "${anime ? anime.title : ''}" de votre bibliothèque ?</p>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+      <button id="confirmYes" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease;">Oui, supprimer</button>
+      <button id="confirmNo" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease;">Non, annuler</button>
+    </div>
+  `;
+
+  confirmDialog.appendChild(dialogContent);
+  document.body.appendChild(confirmDialog);
+
+  // Ajout des listeners après l'insertion dans le DOM
+  const yesBtn = document.getElementById("confirmYes");
+  const noBtn = document.getElementById("confirmNo");
+
+  if (yesBtn) {
+    yesBtn.addEventListener("click", async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/animes/${animeId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + getToken()
+          }
+        });
+        if (!response.ok) {
+          handleAuthError({ status: response.status });
+          alert('Erreur lors de la suppression.');
         }
-      });
-      if (!response.ok) {
-        handleAuthError({ status: response.status });
-        alert('Erreur lors de la suppression.');
+        loadAnimeList();
+        document.body.removeChild(confirmDialog);
+      } catch (err) {
+        alert('Erreur réseau.');
       }
-      loadAnimeList();
+    });
+  }
+
+  if (noBtn) {
+    noBtn.addEventListener("click", () => {
       document.body.removeChild(confirmDialog);
-    } catch (err) {
-      alert('Erreur réseau.');
+    });
+  }
+
+  // Fermer en cliquant en dehors de la boîte de dialogue
+  confirmDialog.addEventListener("click", (e) => {
+    if (e.target === confirmDialog) {
+      document.body.removeChild(confirmDialog);
     }
   });
-  // ... reste inchangé ...
 };
 
 // Désactiver l'export/import (optionnel, ou tu peux les adapter pour utiliser l'API si besoin)
