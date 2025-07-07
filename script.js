@@ -667,6 +667,12 @@ function sortTable(columnIndex) {
         break;
       case 2: // Date - tri chronologique
         comparison = compareDates(aValue, bValue);
+        // Si tri décroissant, inverser le résultat mais garder les dates vides en bas
+        if (currentSortDirection === -1) {
+          comparison = -comparison;
+          if (aValue === "-" && bValue !== "-") return 1;
+          if (bValue === "-" && aValue !== "-") return -1;
+        }
         break;
       case 3: // Statut - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -675,7 +681,7 @@ function sortTable(columnIndex) {
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
     }
     
-    return comparison * currentSortDirection;
+    return comparison * (columnIndex === 2 ? 1 : currentSortDirection);
   });
   
   // Réorganiser les lignes dans le tableau
@@ -703,28 +709,28 @@ function compareSeasons(a, b) {
 function compareDates(a, b) {
   // Gérer le cas où une des valeurs est "-"
   if (a === "-" && b === "-") return 0;
-  if (a === "-") return 1; // Les dates vides vont à la fin
+  if (a === "-") return 1; // Les dates vides vont à la fin, même en décroissant
   if (b === "-") return -1;
-  
+
   // Parser le format français JJ/MM/AAAA
   const aMatch = a.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   const bMatch = b.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  
+
   if (aMatch && bMatch) {
     const aDay = parseInt(aMatch[1]);
     const aMonth = parseInt(aMatch[2]);
     const aYear = parseInt(aMatch[3]);
-    
+
     const bDay = parseInt(bMatch[1]);
     const bMonth = parseInt(bMatch[2]);
     const bYear = parseInt(bMatch[3]);
-    
+
     // Comparer année, puis mois, puis jour
     if (aYear !== bYear) return aYear - bYear;
     if (aMonth !== bMonth) return aMonth - bMonth;
     return aDay - bDay;
   }
-  
+
   // Si le format ne correspond pas, tri alphabétique
   return a.localeCompare(b, 'fr', {sensitivity: 'base'});
 }
