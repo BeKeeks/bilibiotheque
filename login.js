@@ -1,7 +1,7 @@
 // Configuration de l'URL de l'API
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000' 
-  : 'https://ton-backend.onrender.com'; // Remplacer par ton URL de backend
+  : 'https://anime-bibliotheque-backend.onrender.com'; // Remplacer par ton URL de backend
 
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
   e.preventDefault();

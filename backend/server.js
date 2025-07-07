@@ -13,7 +13,7 @@ const app = express();
 
 // Configuration CORS pour la production
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://ton-site.netlify.app',
+  origin: process.env.FRONTEND_URL || 'https://animotheque.netlify.app',
   credentials: true
 }));
 
