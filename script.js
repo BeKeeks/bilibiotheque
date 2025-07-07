@@ -707,25 +707,26 @@ function compareSeasons(a, b) {
 }
 
 function compareDates(a, b, direction) {
-  // Gérer le cas où une des valeurs est "-"
-  if (a === "-" && b === "-") return 0;
-  if (a === "-") return direction === 1 ? -1 : 1;
-  if (b === "-") return direction === 1 ? 1 : -1;
-
-  // Parser le format français JJ/MM/AAAA
-  const aMatch = a.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  const bMatch = b.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-
-  if (aMatch && bMatch) {
-    const aDate = new Date(`${aMatch[3]}-${aMatch[2].padStart(2, '0')}-${aMatch[1].padStart(2, '0')}`);
-    const bDate = new Date(`${bMatch[3]}-${bMatch[2].padStart(2, '0')}-${bMatch[1].padStart(2, '0')}`);
-    if (aDate < bDate) return -1;
-    if (aDate > bDate) return 1;
-    return 0;
+  // Convertir en timestamp ou null si vide/mal formaté
+  function parseDate(str) {
+    const match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (!match) return null;
+    // yyyy-mm-dd pour Date
+    return new Date(`${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`).getTime();
   }
+  const aTime = parseDate(a);
+  const bTime = parseDate(b);
 
-  // Si le format ne correspond pas, tri alphabétique
-  return a.localeCompare(b, 'fr', {sensitivity: 'base'});
+  // Les deux vides
+  if (aTime === null && bTime === null) return 0;
+  // a vide
+  if (aTime === null) return direction === 1 ? -1 : 1;
+  // b vide
+  if (bTime === null) return direction === 1 ? 1 : -1;
+  // Les deux valides
+  if (aTime < bTime) return -1;
+  if (aTime > bTime) return 1;
+  return 0;
 }
 
 function updateSortArrows(columnIndex, direction) {
