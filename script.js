@@ -828,15 +828,23 @@ async function translateAnimeTitle(japaneseTitle) {
     return translations[japaneseTitle];
   }
 
-  // Si pas trouvé, essayer de récupérer via l'API Jikan
+  // Si pas trouvé, essayer de récupérer via l'API Jikan (tous les titres)
   try {
     const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(japaneseTitle)}&limit=1`);
     if (response.ok) {
       const data = await response.json();
       if (data.data && data.data.length > 0) {
         const anime = data.data[0];
-        // Retourner le titre anglais s'il existe, sinon le titre japonais
-        return anime.title_english || anime.title;
+        // Prendre le titre anglais si dispo, sinon le titre principal, sinon le titre japonais
+        if (anime.title_english && anime.title_english !== "null" && anime.title_english !== "") {
+          return anime.title_english;
+        }
+        if (anime.title && anime.title !== "null" && anime.title !== "") {
+          return anime.title;
+        }
+        if (anime.title_japanese && anime.title_japanese !== "null" && anime.title_japanese !== "") {
+          return anime.title_japanese;
+        }
       }
     }
   } catch (error) {
