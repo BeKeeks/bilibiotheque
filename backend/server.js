@@ -143,6 +143,23 @@ app.put('/api/animes/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Réinitialisation du mot de passe (sans email)
+app.post('/api/reset-password', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: 'Email et nouveau mot de passe requis' });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'Aucun compte avec cet email' });
+    const hashed = await bcrypt.hash(password, 10);
+    user.password = hashed;
+    await user.save();
+    res.json({ message: 'Mot de passe réinitialisé avec succès' });
+  } catch (error) {
+    console.error('Erreur reset password:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
 // Servir les fichiers statiques en production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../')));

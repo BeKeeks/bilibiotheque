@@ -1,0 +1,42 @@
+// Configuration de l'URL de l'API
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://anime-bibliotheque-backend.onrender.com';
+
+document.getElementById('resetForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
+  errorMessage.textContent = '';
+  successMessage.textContent = '';
+
+  if (password !== confirmPassword) {
+    errorMessage.textContent = 'Les mots de passe ne correspondent pas.';
+    return;
+  }
+  if (password.length < 6) {
+    errorMessage.textContent = 'Le mot de passe doit contenir au moins 6 caractères.';
+    return;
+  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      errorMessage.textContent = data.message || 'Erreur lors de la réinitialisation.';
+      return;
+    }
+    successMessage.textContent = 'Mot de passe réinitialisé ! Redirection...';
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 1200);
+  } catch (err) {
+    errorMessage.textContent = 'Erreur réseau ou serveur.';
+  }
+}); 

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Connexion - Ma Bibliothèque d'Animés</title>
+  <title>Réinitialiser le mot de passe - Ma Bibliothèque d'Animés</title>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
@@ -21,7 +21,7 @@
       align-items: center;
       min-height: 100vh;
     }
-    .login-container {
+    .reset-container {
       margin-top: 8vh;
       background: rgba(255,255,255,0.95);
       border-radius: 15px;
@@ -62,17 +62,17 @@
     button:hover {
       background-color: #1e88e5;
     }
-    .register-link {
+    .login-link {
       text-align: center;
       margin-top: 1rem;
       color: #333;
     }
-    .register-link a {
+    .login-link a {
       color: #42a5f5;
       text-decoration: none;
       font-weight: bold;
     }
-    .register-link a:hover {
+    .login-link a:hover {
       text-decoration: underline;
     }
     .error-message {
@@ -81,24 +81,29 @@
       text-align: center;
       font-size: 1rem;
     }
+    .success-message {
+      color: #388e3c;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h1>Connexion</h1>
-    <form id="loginForm">
+  <div class="reset-container">
+    <h1>Réinitialiser le mot de passe</h1>
+    <form id="resetForm">
       <input type="email" id="email" placeholder="Email" required autocomplete="username">
-      <input type="password" id="password" placeholder="Mot de passe" required autocomplete="current-password">
+      <input type="password" id="password" placeholder="Nouveau mot de passe" required autocomplete="new-password">
+      <input type="password" id="confirmPassword" placeholder="Confirme le mot de passe" required autocomplete="new-password">
       <div class="error-message" id="errorMessage"></div>
-      <button type="submit">Se connecter</button>
+      <div class="success-message" id="successMessage"></div>
+      <button type="submit">Réinitialiser</button>
     </form>
-    <div class="register-link">
-      Pas encore de compte ? <a href="register.html">Créer un compte</a>
-    </div>
-    <div class="register-link" style="margin-top:0.5rem;">
-      <a href="reset.html">Mot de passe oublié&nbsp;?</a>
+    <div class="login-link">
+      <a href="login.html">Retour à la connexion</a>
     </div>
   </div>
-  <script src="login.js"></script>
+  <script src="reset.js"></script>
 </body>
 </html> 
