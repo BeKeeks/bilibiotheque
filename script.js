@@ -492,7 +492,13 @@ async function renderAnimeList(animeList) {
     
     // Traduction automatique du titre
     let displayTitle = await translateAnimeTitle(anime.title);
-    
+
+    // Récupérer la date de sortie si besoin
+    let sortieCell = "";
+    if (anime.status === "saison à venir" || anime.status === "pas d'info" || anime.status === "pas d'information") {
+      sortieCell = await getAnimeReleaseInfo(anime.title);
+    }
+
     tr.innerHTML = `
       <td style="width: 200px;">
         <div style="text-align: center;">
@@ -506,7 +512,7 @@ async function renderAnimeList(animeList) {
       </td>
       <td>${formattedDate}</td>
       <td>${formatStatus(anime.status)}</td>
-      <td>🔍</td>
+      <td>${sortieCell}</td>
       <td style="text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
           <button onclick="editAnime('${anime._id}')" style="background: #6c757d; color: white; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-size: 1rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">✏️</button>
@@ -667,11 +673,8 @@ function sortTable(columnIndex) {
         break;
       case 2: // Date - tri chronologique
         comparison = compareDates(aValue, bValue);
-        // Si tri décroissant, inverser le résultat mais garder les dates vides en bas
         if (currentSortDirection === -1) {
           comparison = -comparison;
-          if (aValue === "-" && bValue !== "-") return 1;
-          if (bValue === "-" && aValue !== "-") return -1;
         }
         break;
       case 3: // Statut - tri alphabétique
@@ -681,7 +684,7 @@ function sortTable(columnIndex) {
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
     }
     
-    return comparison * (columnIndex === 2 ? 1 : currentSortDirection);
+    return comparison * currentSortDirection;
   });
   
   // Réorganiser les lignes dans le tableau
@@ -709,8 +712,8 @@ function compareSeasons(a, b) {
 function compareDates(a, b) {
   // Gérer le cas où une des valeurs est "-"
   if (a === "-" && b === "-") return 0;
-  if (a === "-") return 1; // Les dates vides vont à la fin, même en décroissant
-  if (b === "-") return -1;
+  if (a === "-") return -1; // Les dates vides sont les plus anciennes
+  if (b === "-") return 1;
 
   // Parser le format français JJ/MM/AAAA
   const aMatch = a.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
@@ -859,6 +862,37 @@ async function translateAnimeTitle(japaneseTitle) {
 
   // Si aucune traduction trouvée, retourner le titre original
   return japaneseTitle;
+}
+
+async function getAnimeReleaseInfo(title) {
+  try {
+    const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data && data.data.length > 0) {
+        const anime = data.data[0];
+        // Date précise
+        if (anime.aired && anime.aired.from) {
+          const date = new Date(anime.aired.from);
+          if (!isNaN(date.getTime())) {
+            return `Sortie prévue le ${date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+          }
+        }
+        // Saison/année
+        if (anime.season && anime.year) {
+          const saison = anime.season.charAt(0).toUpperCase() + anime.season.slice(1);
+          return `Sortie prévue : ${saison} ${anime.year}`;
+        }
+        // Année seule
+        if (anime.year) {
+          return `Sortie prévue : ${anime.year}`;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la date de sortie:", error);
+  }
+  return "Inconnue";
 }
 
 // Fonction pour modifier un animé
