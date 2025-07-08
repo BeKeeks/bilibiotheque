@@ -322,68 +322,7 @@ async function getSeasonCount(animeId, animeTitle) {
   }
 }
 
-window.selectAnime = async function(title) {
-  const anime = currentSearchResults.find(a => a.title === title);
-  document.getElementById("title").value = title;
-  document.getElementById("autocompleteResults").style.display = "none";
-
-  // Stocker l'image de l'animé sélectionné
-  if (anime && anime.images && anime.images.jpg && anime.images.jpg.image_url) {
-    window.selectedAnimeImage = anime.images.jpg.image_url;
-  } else {
-    window.selectedAnimeImage = null;
-  }
-
-  // Gestion du champ saison
-  const lastEpisodeCell = document.getElementById("lastEpisode").parentElement;
-  let selectId = "seasonSelect";
-  
-  // On efface le select s'il existe déjà
-  if (document.getElementById(selectId)) {
-    document.getElementById(selectId).remove();
-  }
-  
-  // On remet le champ texte par défaut
-  if (!document.getElementById("lastEpisode")) {
-    const input = document.createElement("input");
-    input.type = "text";
-    input.id = "lastEpisode";
-    input.placeholder = "Saison X - Ep X";
-    lastEpisodeCell.appendChild(input);
-  }
-
-  if (anime && anime.mal_id) {
-    // On récupère le nombre de saisons
-    const seasonCount = await getSeasonCount(anime.mal_id, anime.title);
-    
-    console.log("Nombre de saisons trouvé:", seasonCount, "pour", anime.title);
-    
-    // Créer un menu déroulant même pour 1 saison (pour la cohérence)
-    if (seasonCount >= 1) {
-      // On remplace le champ texte par un select
-      const input = document.getElementById("lastEpisode");
-      if (input) input.remove();
-      
-      const select = document.createElement("select");
-      select.id = selectId;
-      select.name = "seasonSelect";
-      select.style.minWidth = "120px";
-      select.style.width = "120px";
-      
-      // Ajouter les options "Saison 1", "Saison 2", etc.
-      for (let i = 1; i <= seasonCount; i++) {
-        const opt = document.createElement("option");
-        opt.value = `Saison ${i}`;
-        opt.textContent = `Saison ${i}`;
-        select.appendChild(opt);
-      }
-      
-      lastEpisodeCell.appendChild(select);
-    }
-  }
-}
-
-// Adapter addAnime pour POSTer vers l'API
+// 1. Stocker le type lors de l'ajout
 async function addAnime(e) {
   if (e && e.preventDefault) e.preventDefault();
   const title = document.getElementById("title").value.trim();
@@ -397,6 +336,8 @@ async function addAnime(e) {
   const watchDate = document.getElementById("watchDate").value;
   const status = document.getElementById("status").value;
   const sortie = document.getElementById("sortie") ? document.getElementById("sortie").value.trim() : "";
+  // Récupérer le type depuis l'autocomplétion si dispo
+  let type = window.selectedAnimeType || null;
   if (!title) return;
   const anime = {
     title,
@@ -405,7 +346,8 @@ async function addAnime(e) {
     watchDate,
     status,
     sortie: status === 'saison à venir' ? sortie : '',
-    image: window.selectedAnimeImage || null
+    image: window.selectedAnimeImage || null,
+    type: type
   };
   try {
     const response = await fetch(`${API_BASE_URL}/api/animes`, {
@@ -423,6 +365,7 @@ async function addAnime(e) {
     }
     // Réinitialiser les champs
     window.selectedAnimeImage = null;
+    window.selectedAnimeType = null;
     document.getElementById("title").value = "";
     document.getElementById("watchDate").value = "";
     document.getElementById("status").value = "fini";
@@ -451,34 +394,10 @@ async function addAnime(e) {
   }
 }
 
-// Remplacer loadAnimeList pour charger depuis l'API
-async function loadAnimeList() {
-  const tbody = document.querySelector("#animeTable tbody");
-  tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Chargement...</td></tr>";
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/animes`, {
-      headers: {
-        'Authorization': 'Bearer ' + getToken()
-      }
-    });
-    if (!response.ok) {
-      handleAuthError({ status: response.status });
-      tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#d32f2f;'>Erreur de chargement</td></tr>";
-      return;
-    }
-    const animeList = await response.json();
-    animeListCache = animeList;
-    renderAnimeList(animeList);
-  } catch (err) {
-    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#d32f2f;'>Erreur réseau</td></tr>";
-  }
-}
-
-// Nouvelle fonction pour afficher la liste (extrait de l'ancienne loadAnimeList)
+// 2. Afficher 'Film' dans la colonne Saison si type==='Movie'
 async function renderAnimeList(animeList) {
   const tbody = document.querySelector("#animeTable tbody");
   tbody.innerHTML = "";
-  
   for (const anime of animeList) {
     const tr = document.createElement("tr");
     let formattedDate = "-";
@@ -492,13 +411,10 @@ async function renderAnimeList(animeList) {
         });
       }
     }
-    
-    // Traduction automatique du titre
     let displayTitle = await translateAnimeTitle(anime.title);
-
-    // Afficher la sortie prévue si renseignée
     let sortieCell = anime.sortie && anime.status === 'saison à venir' ? anime.sortie : '';
-
+    // Colonne Saison : 'Film' si type Movie
+    let saisonCell = (anime.type === 'Movie' || anime.type === 'movie' || anime.lastEpisode === 'Film') ? 'Film' : (anime.lastEpisode || '-');
     tr.innerHTML = `
       <td style="width: 200px;">
         <div style="text-align: center;">
@@ -507,7 +423,7 @@ async function renderAnimeList(animeList) {
         </div>
       </td>
       <td>
-        ${anime.lastEpisode || "-"}
+        ${saisonCell}
         ${anime.episode ? `<div style='font-size:0.95em; color:#555;'>Épisode : ${anime.episode}</div>` : ''}
       </td>
       <td>${formattedDate}</td>
@@ -515,14 +431,76 @@ async function renderAnimeList(animeList) {
       <td>${sortieCell}</td>
       <td style="text-align: center;">
         <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
-          <button onclick="editAnime('${anime._id}')" style="background: #6c757d; color: white; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-size: 1rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">✏️</button>
-          <button onclick="deleteAnime('${anime._id}')" style="background: #42a5f5; color: white; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-size: 1rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">🗑️</button>
+          <button onclick="window.editAnime('${anime._id}')" style="background: #6c757d; color: white; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-size: 1rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">✏️</button>
+          <button onclick="window.deleteAnime('${anime._id}')" style="background: #42a5f5; color: white; border: none; border-radius: 6px; padding: 8px; cursor: pointer; font-size: 1rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">🗑️</button>
         </div>
       </td>
     `;
     tbody.appendChild(tr);
   }
+  // Mettre à jour le compteur après affichage
+  updateAnimeCount(animeList);
 }
+
+// 3. Gestion du formulaire d'ajout : masquer/désactiver saison/épisode si film
+function selectAnime(title) {
+  const anime = currentSearchResults.find(a => a.title === title);
+  document.getElementById("title").value = title;
+  document.getElementById("autocompleteResults").style.display = "none";
+  // Stocker l'image et le type
+  if (anime && anime.images && anime.images.jpg && anime.images.jpg.image_url) {
+    window.selectedAnimeImage = anime.images.jpg.image_url;
+  } else {
+    window.selectedAnimeImage = null;
+  }
+  window.selectedAnimeType = anime && anime.type ? anime.type : null;
+  // Si c'est un film, afficher 'Film' et désactiver saison/épisode
+  if (window.selectedAnimeType && window.selectedAnimeType.toLowerCase() === 'movie') {
+    // Saison
+    const lastEpisodeCell = document.getElementById("lastEpisode").parentElement;
+    if (document.getElementById("seasonSelect")) {
+      document.getElementById("seasonSelect").remove();
+    }
+    if (document.getElementById("lastEpisode")) {
+      document.getElementById("lastEpisode").remove();
+    }
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "lastEpisode";
+    input.value = "Film";
+    input.readOnly = true;
+    input.style.backgroundColor = "#f8f9fa";
+    input.style.cursor = "not-allowed";
+    input.style.minWidth = "120px";
+    input.style.width = "120px";
+    lastEpisodeCell.appendChild(input);
+    // Épisode
+    document.getElementById("episode").value = "";
+    document.getElementById("episode").disabled = true;
+    document.getElementById("episode").style.backgroundColor = "#f8f9fa";
+    document.getElementById("episode").style.cursor = "not-allowed";
+  } else {
+    // Réactiver le champ épisode
+    document.getElementById("episode").disabled = false;
+    document.getElementById("episode").style.backgroundColor = "";
+    document.getElementById("episode").style.cursor = "";
+  }
+}
+window.selectAnime = selectAnime;
+
+// 4. Fonction pour mettre à jour le compteur
+function updateAnimeCount(animeList) {
+  if (!animeList) return;
+  const count = animeList.filter(a => a.type !== 'Movie' && a.type !== 'movie' && a.lastEpisode !== 'Film').length;
+  const countBox = document.getElementById('animeCount');
+  if (countBox) countBox.textContent = count;
+}
+// Appeler updateAnimeCount dans loadAnimeList après récupération de la liste
+const originalLoadAnimeList = loadAnimeList;
+window.loadAnimeList = async function() {
+  await originalLoadAnimeList();
+  // La mise à jour du compteur est déjà faite dans renderAnimeList
+};
 
 // Adapter deleteAnime pour DELETE via l'API
 window.deleteAnime = async function(animeId) {
