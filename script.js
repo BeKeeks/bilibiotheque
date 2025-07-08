@@ -645,25 +645,26 @@ function sortTable(columnIndex) {
   const table = document.getElementById("animeTable");
   const tbody = table.querySelector("tbody");
   const rows = Array.from(tbody.querySelectorAll("tr"));
-  
-  // Changer la direction si on clique sur la même colonne
-  if (currentSortColumn === columnIndex) {
-    currentSortDirection *= -1;
-  } else {
+
+  // Si on change de colonne, toujours commencer par croissant
+  if (currentSortColumn !== columnIndex) {
     currentSortDirection = 1;
     currentSortColumn = columnIndex;
+  } else {
+    // Sinon, inverser le sens
+    currentSortDirection *= -1;
   }
-  
+
   // Mettre à jour les flèches dans les en-têtes
   updateSortArrows(columnIndex, currentSortDirection);
-  
+
   // Trier les lignes
   rows.sort((a, b) => {
     const aValue = a.cells[columnIndex].textContent.trim();
     const bValue = b.cells[columnIndex].textContent.trim();
-    
+
     let comparison = 0;
-    
+
     switch (columnIndex) {
       case 0: // Nom - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -680,10 +681,10 @@ function sortTable(columnIndex) {
       default:
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
     }
-    
+
     return comparison * currentSortDirection;
   });
-  
+
   // Réorganiser les lignes dans le tableau
   rows.forEach(row => tbody.appendChild(row));
 }
