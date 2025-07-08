@@ -530,12 +530,29 @@ function updateAnimeCount(animeList) {
   const countBox = document.getElementById('animeCount');
   if (countBox) countBox.textContent = count;
 }
-// Appeler updateAnimeCount dans loadAnimeList après récupération de la liste
-const originalLoadAnimeList = loadAnimeList;
-window.loadAnimeList = async function() {
-  await originalLoadAnimeList();
-  // La mise à jour du compteur est déjà faite dans renderAnimeList
-};
+
+// Fonction pour charger la liste d'animés depuis l'API
+async function loadAnimeList() {
+  const tbody = document.querySelector("#animeTable tbody");
+  tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Chargement...</td></tr>";
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/animes`, {
+      headers: {
+        'Authorization': 'Bearer ' + getToken()
+      }
+    });
+    if (!response.ok) {
+      handleAuthError({ status: response.status });
+      tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#d32f2f;'>Erreur de chargement</td></tr>";
+      return;
+    }
+    const animeList = await response.json();
+    animeListCache = animeList;
+    renderAnimeList(animeList);
+  } catch (err) {
+    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;color:#d32f2f;'>Erreur réseau</td></tr>";
+  }
+}
 
 // Adapter deleteAnime pour DELETE via l'API
 window.deleteAnime = async function(animeId) {
