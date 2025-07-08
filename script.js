@@ -662,7 +662,6 @@ function sortTable(columnIndex) {
   rows.sort((a, b) => {
     const aValue = a.cells[columnIndex].textContent.trim();
     const bValue = b.cells[columnIndex].textContent.trim();
-
     let comparison = 0;
 
     switch (columnIndex) {
@@ -673,7 +672,10 @@ function sortTable(columnIndex) {
         comparison = compareSeasons(aValue, bValue);
         break;
       case 2: // Date - tri chronologique
-        comparison = compareDates(aValue, bValue, currentSortDirection);
+        comparison = compareDates(
+          aValue, bValue, currentSortDirection,
+          a.cells[0].textContent.trim(), b.cells[0].textContent.trim()
+        );
         break;
       case 3: // Statut - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -682,7 +684,7 @@ function sortTable(columnIndex) {
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
     }
 
-    return comparison * currentSortDirection;
+    return comparison * (columnIndex === 2 ? 1 : currentSortDirection);
   });
 
   // Réorganiser les lignes dans le tableau
@@ -707,7 +709,7 @@ function compareSeasons(a, b) {
   return a.localeCompare(b, 'fr', {sensitivity: 'base'});
 }
 
-function compareDates(a, b, direction) {
+function compareDates(a, b, direction, aTitle = '', bTitle = '') {
   function parseDate(str) {
     const match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (!match) return null;
@@ -716,14 +718,14 @@ function compareDates(a, b, direction) {
   const aTime = parseDate(a);
   const bTime = parseDate(b);
 
+  // Si un seul a une date, il passe devant ou derrière selon le sens du tri
+  if (aTime === null && bTime !== null) return direction;
+  if (aTime !== null && bTime === null) return -direction;
+
   // Les deux vides : trier par titre pour inverser l'ordre en décroissant
   if (aTime === null && bTime === null) {
-    return direction * a.localeCompare(b, 'fr', {sensitivity: 'base'});
+    return direction * aTitle.localeCompare(bTitle, 'fr', {sensitivity: 'base'});
   }
-  // a vide
-  if (aTime === null) return direction === 1 ? -1 : 1;
-  // b vide
-  if (bTime === null) return direction === 1 ? 1 : -1;
   // Les deux valides
   if (aTime < bTime) return -1;
   if (aTime > bTime) return 1;
