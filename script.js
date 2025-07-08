@@ -673,9 +673,9 @@ function sortTable(columnIndex) {
         break;
       case 2: // Date - tri chronologique
         comparison = compareDates(
-          aValue, bValue,
+          aValue, bValue, currentSortDirection,
           a.cells[0].textContent.trim(), b.cells[0].textContent.trim()
-        ) * currentSortDirection;
+        );
         break;
       case 3: // Statut - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -712,7 +712,7 @@ function compareSeasons(a, b) {
   return a.localeCompare(b, 'fr', {sensitivity: 'base'});
 }
 
-function compareDates(a, b, aTitle = '', bTitle = '') {
+function compareDates(a, b, direction, aTitle = '', bTitle = '') {
   function parseDate(str) {
     const match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (!match) return null;
@@ -721,13 +721,13 @@ function compareDates(a, b, aTitle = '', bTitle = '') {
   const aTime = parseDate(a);
   const bTime = parseDate(b);
 
-  // Si un seul a une date, il passe après (croissant = sans date en bas)
-  if (aTime === null && bTime !== null) return 1;
-  if (aTime !== null && bTime === null) return -1;
+  // Si un seul a une date, il passe après (en bas) quel que soit le sens du tri
+  if (aTime === null && bTime !== null) return direction;
+  if (aTime !== null && bTime === null) return -direction;
 
-  // Les deux vides : trier par titre (croissant)
+  // Les deux vides : trier par titre (ordre dépend du sens du tri)
   if (aTime === null && bTime === null) {
-    return aTitle.localeCompare(bTitle, 'fr', {sensitivity: 'base'});
+    return direction * aTitle.localeCompare(bTitle, 'fr', {sensitivity: 'base'});
   }
   // Les deux valides
   if (aTime < bTime) return -1;
