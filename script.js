@@ -675,7 +675,7 @@ function sortTable(columnIndex) {
         comparison = compareDates(
           aValue, bValue,
           a.cells[0].textContent.trim(), b.cells[0].textContent.trim()
-        );
+        ) * currentSortDirection;
         break;
       case 3: // Statut - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -684,7 +684,10 @@ function sortTable(columnIndex) {
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
     }
 
-    return comparison * currentSortDirection;
+    if (columnIndex !== 2) {
+      comparison *= currentSortDirection;
+    }
+    return comparison;
   });
 
   // Réorganiser les lignes dans le tableau
