@@ -715,13 +715,17 @@ function compareDates(a, b, direction) {
   const aTime = parseDate(a);
   const bTime = parseDate(b);
 
-  // Pour le tri croissant, les dates null sont -Infinity (donc en haut)
-  // Pour le tri décroissant, les dates null sont +Infinity (donc en bas)
-  const aVal = aTime === null ? (direction === 1 ? -Infinity : Infinity) : aTime;
-  const bVal = bTime === null ? (direction === 1 ? -Infinity : Infinity) : bTime;
-
-  if (aVal < bVal) return -1;
-  if (aVal > bVal) return 1;
+  // Les deux vides : trier par titre pour inverser l'ordre en décroissant
+  if (aTime === null && bTime === null) {
+    return direction * a.localeCompare(b, 'fr', {sensitivity: 'base'});
+  }
+  // a vide
+  if (aTime === null) return direction === 1 ? -1 : 1;
+  // b vide
+  if (bTime === null) return direction === 1 ? 1 : -1;
+  // Les deux valides
+  if (aTime < bTime) return -1;
+  if (aTime > bTime) return 1;
   return 0;
 }
 
