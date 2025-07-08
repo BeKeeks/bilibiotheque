@@ -659,7 +659,7 @@ function compareSeasons(a, b) {
   return a.localeCompare(b, 'fr', {sensitivity: 'base'});
 }
 
-function compareDatesForSort(a, b, direction) {
+function compareDatesForSort(a, b) {
   function parseDate(str) {
     const match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (!match) return null;
@@ -672,8 +672,8 @@ function compareDatesForSort(a, b, direction) {
   const aVal = aTime === null ? 0 : aTime;
   const bVal = bTime === null ? 0 : bTime;
 
-  if (aVal < bVal) return -1 * direction;
-  if (aVal > bVal) return 1 * direction;
+  if (aVal < bVal) return -1;
+  if (aVal > bVal) return 1;
   return 0;
 }
 
@@ -708,7 +708,7 @@ function sortTable(columnIndex) {
         comparison = compareSeasons(aValue, bValue);
         break;
       case 2: // Date - tri chronologique
-        comparison = compareDatesForSort(aValue, bValue, currentSortDirection);
+        comparison = compareDatesForSort(aValue, bValue);
         break;
       case 3: // Statut - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -717,9 +717,7 @@ function sortTable(columnIndex) {
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
     }
 
-    if (columnIndex !== 2) {
-      comparison *= currentSortDirection;
-    }
+    comparison *= currentSortDirection;
     return comparison;
   });
 
