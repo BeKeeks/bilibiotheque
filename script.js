@@ -443,10 +443,11 @@ async function renderAnimeList(animeList) {
 }
 
 // 3. Gestion du formulaire d'ajout : masquer/désactiver saison/épisode si film
-function selectAnime(title) {
+window.selectAnime = async function(title) {
   const anime = currentSearchResults.find(a => a.title === title);
   document.getElementById("title").value = title;
   document.getElementById("autocompleteResults").style.display = "none";
+
   // Stocker l'image et le type
   if (anime && anime.images && anime.images.jpg && anime.images.jpg.image_url) {
     window.selectedAnimeImage = anime.images.jpg.image_url;
@@ -454,16 +455,22 @@ function selectAnime(title) {
     window.selectedAnimeImage = null;
   }
   window.selectedAnimeType = anime && anime.type ? anime.type : null;
+
+  // Gestion du champ saison/film
+  const lastEpisodeCell = document.getElementById("lastEpisode").parentElement;
+  let selectId = "seasonSelect";
+
+  // On efface le select s'il existe déjà
+  if (document.getElementById(selectId)) {
+    document.getElementById(selectId).remove();
+  }
+  // On efface le champ texte s'il existe
+  if (document.getElementById("lastEpisode")) {
+    document.getElementById("lastEpisode").remove();
+  }
+
   // Si c'est un film, afficher 'Film' et désactiver saison/épisode
   if (window.selectedAnimeType && window.selectedAnimeType.toLowerCase() === 'movie') {
-    // Saison
-    const lastEpisodeCell = document.getElementById("lastEpisode").parentElement;
-    if (document.getElementById("seasonSelect")) {
-      document.getElementById("seasonSelect").remove();
-    }
-    if (document.getElementById("lastEpisode")) {
-      document.getElementById("lastEpisode").remove();
-    }
     const input = document.createElement("input");
     input.type = "text";
     input.id = "lastEpisode";
@@ -479,14 +486,42 @@ function selectAnime(title) {
     document.getElementById("episode").disabled = true;
     document.getElementById("episode").style.backgroundColor = "#f8f9fa";
     document.getElementById("episode").style.cursor = "not-allowed";
+    return;
   } else {
     // Réactiver le champ épisode
     document.getElementById("episode").disabled = false;
     document.getElementById("episode").style.backgroundColor = "";
     document.getElementById("episode").style.cursor = "";
   }
+
+  // Si ce n'est pas un film, gestion des saisons (logique d'origine)
+  if (anime && anime.mal_id) {
+    // On récupère le nombre de saisons
+    const seasonCount = await getSeasonCount(anime.mal_id, anime.title);
+    // Créer un menu déroulant même pour 1 saison (pour la cohérence)
+    if (seasonCount >= 1) {
+      const select = document.createElement("select");
+      select.id = selectId;
+      select.name = "seasonSelect";
+      select.style.minWidth = "120px";
+      select.style.width = "120px";
+      for (let i = 1; i <= seasonCount; i++) {
+        const opt = document.createElement("option");
+        opt.value = `Saison ${i}`;
+        opt.textContent = `Saison ${i}`;
+        select.appendChild(opt);
+      }
+      lastEpisodeCell.appendChild(select);
+    }
+  } else {
+    // Si pas d'ID, remettre un champ texte classique
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "lastEpisode";
+    input.placeholder = "Saison X - Ep X";
+    lastEpisodeCell.appendChild(input);
+  }
 }
-window.selectAnime = selectAnime;
 
 // 4. Fonction pour mettre à jour le compteur
 function updateAnimeCount(animeList) {
