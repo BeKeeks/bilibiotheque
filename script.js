@@ -641,14 +641,50 @@ document.getElementById("importButton").addEventListener("click", () => {
 let currentSortColumn = -1;
 let currentSortDirection = 1; // 1 pour ascendant, -1 pour descendant
 
+function compareSeasons(a, b) {
+  // Extraire les numéros de saison et d'épisode
+  const aMatch = a.match(/Saison\s*(\d+)/i);
+  const bMatch = b.match(/Saison\s*(\d+)/i);
+  
+  if (aMatch && bMatch) {
+    const aSeason = parseInt(aMatch[1]);
+    const bSeason = parseInt(bMatch[1]);
+    
+    if (aSeason !== bSeason) {
+      return aSeason - bSeason;
+    }
+  }
+  
+  // Si pas de numéro de saison ou même saison, tri alphabétique
+  return a.localeCompare(b, 'fr', {sensitivity: 'base'});
+}
+
+function compareDatesForSort(a, b, direction) {
+  function parseDate(str) {
+    const match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (!match) return null;
+    return new Date(`${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`).getTime();
+  }
+  const aTime = parseDate(a);
+  const bTime = parseDate(b);
+
+  // Les sans date sont considérés comme les plus anciens (timestamp = 0)
+  const aVal = aTime === null ? 0 : aTime;
+  const bVal = bTime === null ? 0 : bTime;
+
+  if (aVal < bVal) return -1 * direction;
+  if (aVal > bVal) return 1 * direction;
+  return 0;
+}
+
 function sortTable(columnIndex) {
   const table = document.getElementById("animeTable");
   const tbody = table.querySelector("tbody");
   const rows = Array.from(tbody.querySelectorAll("tr"));
 
-  // Si on change de colonne, toujours commencer par croissant
+  // Si on change de colonne, toujours commencer par décroissant (plus récent -> plus ancien)
   if (currentSortColumn !== columnIndex) {
-    currentSortDirection = 1;
+    currentSortDirection = -1;
     currentSortColumn = columnIndex;
   } else {
     // Sinon, inverser le sens
@@ -672,10 +708,7 @@ function sortTable(columnIndex) {
         comparison = compareSeasons(aValue, bValue);
         break;
       case 2: // Date - tri chronologique
-        comparison = compareDates(
-          aValue, bValue, currentSortDirection,
-          a.cells[0].textContent.trim(), b.cells[0].textContent.trim()
-        );
+        comparison = compareDatesForSort(aValue, bValue, currentSortDirection);
         break;
       case 3: // Statut - tri alphabétique
         comparison = aValue.localeCompare(bValue, 'fr', {sensitivity: 'base'});
@@ -692,47 +725,6 @@ function sortTable(columnIndex) {
 
   // Réorganiser les lignes dans le tableau
   rows.forEach(row => tbody.appendChild(row));
-}
-
-function compareSeasons(a, b) {
-  // Extraire les numéros de saison et d'épisode
-  const aMatch = a.match(/Saison\s*(\d+)/i);
-  const bMatch = b.match(/Saison\s*(\d+)/i);
-  
-  if (aMatch && bMatch) {
-    const aSeason = parseInt(aMatch[1]);
-    const bSeason = parseInt(bMatch[1]);
-    
-    if (aSeason !== bSeason) {
-      return aSeason - bSeason;
-    }
-  }
-  
-  // Si pas de numéro de saison ou même saison, tri alphabétique
-  return a.localeCompare(b, 'fr', {sensitivity: 'base'});
-}
-
-function compareDates(a, b, direction, aTitle = '', bTitle = '') {
-  function parseDate(str) {
-    const match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (!match) return null;
-    return new Date(`${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`).getTime();
-  }
-  const aTime = parseDate(a);
-  const bTime = parseDate(b);
-
-  // Si un seul a une date, il passe après (en bas) quel que soit le sens du tri
-  if (aTime === null && bTime !== null) return direction;
-  if (aTime !== null && bTime === null) return -direction;
-
-  // Les deux vides : trier par titre (ordre dépend du sens du tri)
-  if (aTime === null && bTime === null) {
-    return direction * aTitle.localeCompare(bTitle, 'fr', {sensitivity: 'base'});
-  }
-  // Les deux valides
-  if (aTime < bTime) return -1;
-  if (aTime > bTime) return 1;
-  return 0;
 }
 
 function updateSortArrows(columnIndex, direction) {
