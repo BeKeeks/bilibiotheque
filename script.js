@@ -267,7 +267,22 @@ async function getSeasonCount(animeId, animeTitle) {
     "Horimiya": 2,
     "Hori-san to Miyamura-kun": 2,
     "The Great Cleric": 2,
-    "Shijou Saikyou no Daimaou, Murabito A ni Tensei suru": 2
+    "Shijou Saikyou no Daimaou, Murabito A ni Tensei suru": 2,
+    // Corrections des nombres de saisons
+    "Kaguya-Sama Love is War": 3,
+    "Kaguya-sama wa Kokurasetai": 3,
+    "Kaguya-sama": 3,
+    "Fruit Basket": 3,
+    "Fruits Basket": 3,
+    "Furuba": 3,
+    "Ranking of Kings": 2,
+    "Ousama Ranking": 2,
+    "Haikyu": 4,
+    "Haikyuu": 4,
+    "Haikyuu!!": 4,
+    "Danmachi": 3,
+    "Is It Wrong to Try to Pick Up Girls in a Dungeon?": 3,
+    "Dungeon ni Deai wo Motomeru no wa Machigatteiru Darou ka": 3
   };
 
   // Vérifier d'abord dans notre base de données locale
